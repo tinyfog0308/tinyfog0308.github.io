@@ -17,6 +17,7 @@
 
     <body>
         <div id="container"></div>
+        <div id="loading">正在加载，请稍后...</div>
 
         <script src="./js/Detector.js"></script>
         <script src="./js/three.min.js"></script>
@@ -84,6 +85,8 @@
                 var loader = new THREE.AssimpLoader();
                 loader.load(modelurl, function ( err, result ) {
 
+                    var label = document.getElementById( 'loading' );
+
                     if (result) {
 
                         var object = result.object;
@@ -98,6 +101,12 @@
                             scene.add( object );
                             animation = result.animation;
                         }
+
+                        label.style.display = 'none';
+
+                    } else {
+                        label.innerHTML = '加载失败！';
+                        console.log('模型加载失败：'+modelurl);
                     }
 
                 } );
