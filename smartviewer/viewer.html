@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Smart Viewer</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style>
+            body {
+                font-family: Monospace;
+                background-color: #000;
+                color: #fff;
+                margin: 0px;
+                overflow: hidden;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="container"></div>
+
+        <script src="./js/Detector.js"></script>
+        <script src="./js/three.min.js"></script>
+        <script src="./js/OrbitControls.js"></script>
+        <script src="./js/AssimpLoader.js"></script>
+
+        <script>
+
+            var container, controls;
+            var camera, scene, renderer;
+            var animation;
+
+            var modelname = getQuery('model');
+            if (!modelname) {
+                var element = document.createElement( 'div' );
+                element.innerHTML = '请扫描二维码访问本页';
+                document.body.appendChild(element);
+            } else if (!Detector.webgl) {
+                Detector.addGetWebGLMessage();
+            } else {
+                init('./model/' + modelname + '/' + modelname + '.assbin');
+            }
+
+            function getQuery(name) {
+                var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+                var r = window.location.search.substr(1).match(reg);
+            　　if (r!=null) 
+                    return unescape(r[2]);
+                return null;
+        　　}
+
+            function initCamera(box) {
+
+                var center = new THREE.Vector3();
+                box.getCenter(center);
+                var radius = box.getSize().length() * 0.5;
+                camera.position.set(0, radius * 5, 0);
+                camera.position.add(center);
+                camera.up.set( 0, 0, 1 );
+                camera.lookAt(center);
+
+                controls = new THREE.OrbitControls( camera, renderer.domElement );
+            }
+
+            function init(modelurl) {
+
+                container = document.getElementById( 'container' );
+                camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+                scene = new THREE.Scene();
+
+                var ambient = new THREE.HemisphereLight( 0x8888fff, 0xff8888, 0.5 );
+                ambient.position.set( 0, 1, 0 );
+                scene.add( ambient );
+
+                var light = new THREE.DirectionalLight( 0xffffff, 1 );
+                light.position.set( 0, 4, 4 ).normalize();
+                scene.add( light );
+
+                renderer = new THREE.WebGLRenderer( { antialias: true } );
+                renderer.setPixelRatio( window.devicePixelRatio );
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                container.appendChild( renderer.domElement );
+
+                var loader = new THREE.AssimpLoader();
+                loader.load(modelurl, function ( err, result ) {
+
+                    if (result) {
+
+                        var object = result.object;
+                        if (object) {
+
+                            var boundingBox = new THREE.Box3();
+                            boundingBox.expandByObject(object);
+
+                            initCamera(boundingBox);
+
+                            object.rotation.x = Math.PI / 2;
+                            scene.add( object );
+                            animation = result.animation;
+                        }
+                    }
+
+                } );
+
+                window.addEventListener( 'resize', onWindowResize, false );
+                animate();
+
+            }
+
+            function onWindowResize() {
+
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize( window.innerWidth, window.innerHeight );
+
+            }
+
+            function animate() {
+
+                requestAnimationFrame( animate, renderer.domElement );
+                renderer.render( scene, camera );
+
+                if ( animation ) animation.setTime( performance.now() / 1000 );
+            }
+
+        </script>
+    </body>
+</html>

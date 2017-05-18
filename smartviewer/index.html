@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>二维码查询</title>
+    <script src="./js/jquery-3.2.1.min.js"></script>
+    <script src="./js/jquery.qrcode.min.js"></script>
+</head>
+<body>
+    <form action=aa()>
+        模型文件名：<input type="text" id="modelname" value="jeep">
+        <input type="submit" value="查询">
+    </form> 
+    
+    <div id="output"></div>
+
+    <script>
+        if (!String.prototype.includes) {
+            String.prototype.includes = function(search, start) {
+                'use strict';
+                if (typeof start !== 'number') {
+                    start = 0;
+                }
+
+                if (start + search.length > this.length) {
+                    return false;
+                } else {
+                    return this.indexOf(search, start) !== -1;
+                }
+            };
+        }
+    </script>
+    
+    <script>
+        var thisUrl = window.location.href.toString().toLowerCase();
+        var viewerUrl;
+        if (thisUrl.includes('index.html')) {
+            viewerUrl = thisUrl.replace('index.html', 'viewer.html');
+        } else {
+            viewerUrl = thisUrl + 'viewer.html'
+        }
+        $("form").submit(function(e){
+            e.preventDefault();
+            $('#output').empty();
+            var modelUrl = viewerUrl+'?model='+$('#modelname').val();
+            console.log(modelUrl);
+            $('#output').qrcode(modelUrl);
+        });
+    </script>
+</body>
+</html>
