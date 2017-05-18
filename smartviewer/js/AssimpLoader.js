@@ -1057,9 +1057,9 @@
 
 			}
 
-			mat.ambient.r = .53;
-			mat.ambient.g = .53;
-			mat.ambient.b = .53;
+			// mat.ambient.r = .53;
+			// mat.ambient.g = .53;
+			// mat.ambient.b = .53;
 			mat.color.r = 1;
 			mat.color.g = 1;
 			mat.color.b = 1;
