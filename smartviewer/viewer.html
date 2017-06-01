@@ -7,8 +7,8 @@
         <style>
             body {
                 font-family: Monospace;
-                background-color: #000;
-                color: #fff;
+                background-color: #FFF;
+                color: #000;
                 margin: 0px;
                 overflow: hidden;
             }
@@ -38,42 +38,44 @@
             } else if (!Detector.webgl) {
                 Detector.addGetWebGLMessage();
             } else {
-                init('./model/' + modelname + '/' + modelname + '.assbin');
+                loadModel('./model/' + modelname + '/' + modelname + '.assbin');
+            }
+
+            function loadModel(url) {
+                var loader = new THREE.AssimpLoader();
+                loader.load(url, function ( err, result ) {
+                    var label = document.getElementById( 'loading' );
+                    if (result) {
+                        var object = result.object;
+                        if (object) {
+                            var boundingBox = new THREE.Box3();
+                            boundingBox.expandByObject(object);
+                            init(boundingBox);
+                            scene.add( object );
+                            animation = result.animation;
+                            label.style.display = 'none';
+                        } else {
+                            label.innerHTML = '模型数据错误！';
+                        }
+
+                    } else {
+                        label.innerHTML = '加载失败！';
+                        console.log('模型加载失败：'+url);
+                    }
+                } );
             }
 
             function getQuery(name) {
                 var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
                 var r = window.location.search.substr(1).match(reg);
-            　　if (r!=null) 
+                if (r!=null) 
                     return unescape(r[2]);
                 return null;
         　　}
 
-            function initCamera(box) {
-
-                var center = new THREE.Vector3();
-                box.getCenter(center);
-                var radius = box.getSize().length() * 0.5;
-                camera.position.set(0, radius * 5, 0);
-                camera.position.add(center);
-                camera.up.set( 0, 0, 1 );
-                camera.lookAt(center);
-
-                // var axis = new THREE.AxisHelper(radius);
-                // axis.position.copy(center);
-                // scene.add(axis);
-
-                controls = new THREE.OrbitControls( camera, renderer.domElement );
-                controls.target.copy(center);
-                controls.target0.copy(center);
-                controls.update();
-            }
-
-            function init(modelurl) {
+            function init(box) {
 
                 container = document.getElementById( 'container' );
-                camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 10000 );
-
                 scene = new THREE.Scene();
 
                 var ambient = new THREE.HemisphereLight( 0x8888fff, 0xff8888, 0.2 );
@@ -99,52 +101,34 @@
                 renderer.setClearColor(0x666666);
                 container.appendChild( renderer.domElement );
 
-                var loader = new THREE.AssimpLoader();
-                loader.load(modelurl, function ( err, result ) {
+                camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 10000 );
+                var center = new THREE.Vector3();
+                box.getCenter(center);
+                var radius = box.getSize().length() * 0.5;
+                camera.position.set(0, radius * 5, 0);
+                camera.position.add(center);
+                camera.up.set( 0, 0, 1 );
+                camera.lookAt(center);
 
-                    var label = document.getElementById( 'loading' );
-
-                    if (result) {
-
-                        var object = result.object;
-                        if (object) {
-
-                            var boundingBox = new THREE.Box3();
-                            boundingBox.expandByObject(object);
-
-                            initCamera(boundingBox);
-
-                            scene.add( object );
-                            animation = result.animation;
-                        }
-
-                        label.style.display = 'none';
-
-                    } else {
-                        label.innerHTML = '加载失败！';
-                        console.log('模型加载失败：'+modelurl);
-                    }
-
-                } );
+                controls = new THREE.OrbitControls( camera, renderer.domElement );
+                controls.target.copy(center);
+                controls.target0.copy(center);
+                controls.update();
 
                 window.addEventListener( 'resize', onWindowResize, false );
-                animate();
 
+                animate();
             }
 
             function onWindowResize() {
-
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize( window.innerWidth, window.innerHeight );
-
             }
 
             function animate() {
-
                 requestAnimationFrame( animate, renderer.domElement );
                 renderer.render( scene, camera );
-
                 if ( animation ) animation.setTime( performance.now() / 1000 );
             }
 
